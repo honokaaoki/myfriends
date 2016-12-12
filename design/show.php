@@ -1,3 +1,72 @@
+<?php  
+//①DBへ接続
+$dsn = 'mysql:dbname=myfriends;host=localhost';
+$user = 'root';
+$password='';
+$dbh = new PDO($dsn, $user, $password);
+$dbh->query('SET NAMES utf8');
+
+//②SQL作成作成（都道府県名の取得）
+$sql = 'SELECT * FROM `areas` WHERE `area_id` = ?';
+
+//③SQL実行
+
+  $data[] = $_GET['area_id'];
+  $stmt = $dbh->prepare($sql);
+  $stmt->execute($data);
+  $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+  $name = $rec['area_name'];
+//④データの取得
+
+//SQL文作成
+$sql='SELECT * FROM `friends` WHERE `area_id` = ?';
+//$data[] = $_GET['area_id'];
+//SQL文実行
+  $stmt = $dbh->prepare($sql);
+  $stmt->execute($data);
+  
+//データの取得
+  
+
+//④データの取得
+
+$friends = array();
+
+//男女カウント用変数
+$male = 0;
+$female = 0;
+
+while(1) {
+  $rec = $stmt->fetch(PDO::FETCH_ASSOC);
+//で-たが取得できなくなったら繰り返しの処理を終了 
+if($rec == false) {
+  break;
+}
+
+$friends[] = $rec;
+
+//男女カウント
+if($rec['gender'] == 0) {
+  $male ++; 
+}else{
+  $female ++;
+}
+
+}
+
+
+// var_dump($friends);
+//⑤DB切断
+$dbh = null;
+
+
+//宿題→前のページから選択された都道府県名を取得し、『〇〇のお友達』
+
+
+?>
+
+
+
 <!DOCTYPE html>
 <html lang="ja">
   <head>
@@ -48,8 +117,8 @@
   <div class="container">
     <div class="row">
       <div class="col-md-4 content-margin-top">
-      <legend>北海道の友達</legend>
-      <div class="well">男性：2名　女性：1名</div>
+      <legend><?php echo $name ?>の友達</legend>
+      <div class="well">男性： <?php echo $male; ?>名　女性：<?php echo $female;?>名</div>
         <table class="table table-striped table-hover table-condensed">
           <thead>
             <tr>
@@ -59,37 +128,40 @@
           </thead>
           <tbody>
             <!-- 友達の名前を表示 -->
+            <?php foreach ($friends as $friend) : ?>
             <tr>
-              <td><div class="text-center">山田　太郎</div></td>
+              <td><div class="text-center"><?php echo $friend['friend_name']; ?></div></td>
               <td>
                 <div class="text-center">
-                  <a href="edit.html"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                  <a href="edit.php?friend_id=<?php echo $friend['friend_id']; ?>"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                  <a href="javascript:void(0);" onclick="destroy();"><i class="fa fa-trash"></i></a>
+                </div>
+              </td>
+            </tr>
+             <?php endforeach; ?>
+            <!-- <tr> -->
+              <!-- <td><div class="text-center">小林　花子</div></td>
+              <td>
+                <div class="text-center">
+                  <a href="edit.php"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
                   <a href="javascript:void(0);" onclick="destroy();"><i class="fa fa-trash"></i></a>
                 </div>
               </td>
             </tr>
             <tr>
-              <td><div class="text-center">小林　花子</div></td>
-              <td>
-                <div class="text-center">
-                  <a href="edit.html"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
-                  <a href="javascript:void(0);" onclick="destroy();"><i class="fa fa-trash"></i></a>
-                </div>
-              </td>
-            </tr>
-            <tr>
+            
               <td><div class="text-center">佐藤　健</div></td>
-              <td>
+              <td> -->
                 <div class="text-center">
-                  <a href="edit.html"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
+                  <a href="edit.php"><i class="fa fa-pencil"></i></a>&nbsp;&nbsp;&nbsp;&nbsp;
                   <a href="javascript:void(0);" onclick="destroy();"><i class="fa fa-trash"></i></a>
                 </div>
               </td>
             </tr>
           </tbody>
         </table>
-
-        <input type="button" class="btn btn-default" value="新規作成" onClick="location.href='new.html'">
+          
+        <input type="button" class="btn btn-default" value="新規作成" onClick="location.href='new.php'">
       </div>
     </div>
   </div>
@@ -97,5 +169,22 @@
     <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
     <script src="js/bootstrap.min.js"></script>
+  
+       <script>
+      function destroy(friend_id) {
+      　// ポップアップを表示
+      　if(confirm('削除します。本当によろしいですか？')==true){
+          //okボタンを押した時
+          location.href = 'show.php?action=delete&friend_id=' + friend_id;
+          return true;
+      }else{
+        //キャンセルボタンを押した時
+        return false;
+      }
+    }
+
+      </script>
+
+
   </body>
 </html>
